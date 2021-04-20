@@ -25,6 +25,6 @@ include("hamiltonian_explosion.jl")
 export solve_particle_system, get_velocity, get_J, VanderWaalsParticleSystem
 
 include("dtwa_problem.jl")
-export DTWAProblem, solve_dtwa
+export DTWAProblem, solve_dtwa, XYZSystem
 
 end  # module DTWA

@@ -2,10 +2,10 @@ abstract type SpinSystem end
 
 # Spin system
 
-struct XYZSystem <: SpinSystem
-    J
-    h
-    anisotropy
+struct XYZSystem{T} <: SpinSystem
+    J::Matrix{T}
+    h::VecOrMat{T}
+    anisotropy::Vector{T}
 end
 
 get_dt(system::XYZSystem) = 1/maximum(maximum(system.J, dims=1))/4
@@ -49,7 +49,7 @@ end
 
 conserve_spin_callback = ManifoldProjection(conserve_spin_norm)
 
-function DTWAproblem(system::SpinSystem, Ψ, saveat; kwargs...)
+function DTWAProblem(system::SpinSystem, Ψ, saveat; kwargs...)
     dt = get(kwargs, :dt, get_dt(system))
     hamiltonian! = build_hamiltonian!(system)
     Ψ_ini = permutedims(dtwa_state(Ψ))
@@ -78,7 +78,8 @@ function solve_dtwa(ensemble_prob, trajectories; kwargs...)
         Tsit5(),
         # AutoTsit5(Rosenbrock23()),
         # EnsembleSerial(),
-        EnsembleDistributed(),
+        EnsembleThreads(),
+        # EnsembleDistributed(),
         trajectories=trajectories;
         #saveat=collect(LinRange(tspan[1], tspan[2], nsteps));
         kwargs...
