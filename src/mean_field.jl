@@ -1,9 +1,9 @@
 function hamiltonian!(ds, s, J::AbstractMatrix, h::AbstractVector, anisotropy, t)
     for i in 1:size(s, 1) # iterate over all spins i
         js_x, js_y, js_z = @uviews J s begin
-            js_x = anisotropy[1] * get_mean_field(J, s, i, 1) + h[1]
-            js_y = anisotropy[2] * get_mean_field(J, s, i, 2) + h[2]
-            js_z = anisotropy[3] * get_mean_field(J, s, i, 3) + h[3]
+            js_x = 0.5 * anisotropy[1] * get_mean_field(J, s, i, 1) + h[1]
+            js_y = 0.5 * anisotropy[2] * get_mean_field(J, s, i, 2) + h[2]
+            js_z = 0.5 * anisotropy[3] * get_mean_field(J, s, i, 3) + h[3]
             js_x, js_y, js_z
         end
 
