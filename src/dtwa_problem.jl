@@ -49,7 +49,7 @@ end
 
 conserve_spin_callback = ManifoldProjection(conserve_spin_norm)
 
-function DTWAProblem(system::SpinSystem, Ψ, saveat; kwargs...)
+function DTWAProblem(system, Ψ, saveat; kwargs...)
     dt = get(kwargs, :dt, get_dt(system))
     hamiltonian! = build_hamiltonian!(system)
     Ψ_ini = permutedims(dtwa_state(Ψ))
@@ -70,6 +70,27 @@ function DTWAProblem(system::SpinSystem, Ψ, saveat; kwargs...)
     )
 end
 
+function DTWAProblem_noreduction(system::SpinSystem, Ψ, saveat; kwargs...)
+    dt = get(kwargs, :dt, get_dt(system))
+    hamiltonian! = build_hamiltonian!(system)
+    Ψ_ini = permutedims(dtwa_state(Ψ))
+    prob = ODEProblem(hamiltonian!, Ψ_ini, (saveat[1], saveat[end]),
+        dense=false,
+        dt=dt,
+        force_dtmin=true,
+        adaptive=true,
+        saveat=saveat
+    )
+
+    EnsembleProblem(
+        prob,
+        prob_func = (prob, i, repeat) -> dtwa_prob_func(prob, Ψ),
+        output_func = (sol,i) -> (sol.u, false),
+        reduction = (u, data, I)->(append!(u, data), false),
+        u_init = []
+    )
+end
+
 function solve_dtwa(ensemble_prob, trajectories; kwargs...)
     tspan = ensemble_prob.prob.tspan
     nsteps = size(ensemble_prob.u_init, 1)
@@ -78,11 +99,16 @@ function solve_dtwa(ensemble_prob, trajectories; kwargs...)
         Tsit5(),
         # AutoTsit5(Rosenbrock23()),
         # EnsembleSerial(),
-        EnsembleThreads(),
-        # EnsembleDistributed(),
+        # EnsembleThreads(),
+        EnsembleDistributed(),
         trajectories=trajectories;
         #saveat=collect(LinRange(tspan[1], tspan[2], nsteps));
         kwargs...
     )
     sol.u ./= trajectories
+end
+
+function solve_dtwa(ensemble_prob, tracectories, s::Sequence; kwargs...)
+    cb = IterativeCallback(s)
+    solve_dtwa(ensemble_prob, tracectories; callback=cb, kwargs...)
 end

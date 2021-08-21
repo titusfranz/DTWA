@@ -1,14 +1,17 @@
 abstract type PulseBlock end
 
 struct Sequence{T} <: PulseBlock
+    J::Matrix{T}
     fields::Vector{Vector{T}}
     durations::Vector{T}
+    anisotropy::Vector{T}
+    state::Matrix{T}
 end
 
 function Base.repeat(s::Sequence, n::Integer)
     fields = repeat(s.fields, n) #, outer=(1, n))
     durations = repeat(s.durations, n)
-    Sequence(fields, durations)
+    Sequence(s.J, fields, durations, s.anisotropy, s.state)
 end
 
 function Base.iterate(s::Sequence, state=1)
@@ -47,10 +50,12 @@ end
 
 function create_affect!(s::Sequence)
     f = function(integrator)
-        J = integrator.p.x[1]
+        J = s.J
         index = clostest_index(s, integrator.t)
-        h = s.fields[index]
-        integrator.p = ArrayPartition(J, h)
+        #h = s.fields[index]
+        # integrator.p = ArrayPartition(J, h)
+        system = XYZSystem(J, [0.0, 0.0, 0.0], [1.0, 1.0, 0])
+        integrator.f = build_hamiltonian!(system)
     end
     f
 end
@@ -65,7 +70,7 @@ DiffEqCallbacks.IterativeCallback(s::Sequence) = IterativeCallback(
 )
 
 
-function wahuha(h, T)
+function wahuha(J, h, T, anisotropy, state)
     X = h .* [1., 0., 0.]
     Y = h .* [0., 1., 0.]
     Null = [0., 0., 0.]
@@ -73,7 +78,7 @@ function wahuha(h, T)
 
     t = π/2/h
     durations = [T, t, T, t, 2*T, t, T, t, T]
-    return Sequence(fields, durations)
+    return Sequence(J, fields, durations, anisotropy, state)
 end
 
-wahuha(h, T, n) = repeat(wahuha(h, T), n)
+wahuha(J, h, T, anisotropy, state, n) = repeat(wahuha(J, h, T, anisotropy, state), n)

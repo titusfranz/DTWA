@@ -1,5 +1,6 @@
 module DTWA
 
+using LinearAlgebra: Matrix
 using DataStructures: OrderedDict
 using LinearAlgebra
 using UnsafeArrays
