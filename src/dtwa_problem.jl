@@ -100,7 +100,7 @@ function solve_dtwa(ensemble_prob, trajectories; kwargs...)
         # AutoTsit5(Rosenbrock23()),
         # EnsembleSerial(),
         # EnsembleThreads(),
-        # EnsembleDistributed(),
+        EnsembleDistributed(),
         trajectories=trajectories;
         #saveat=collect(LinRange(tspan[1], tspan[2], nsteps));
         kwargs...
