@@ -8,8 +8,8 @@
 #### Product states ###########################################################
 ###############################################################################
 
-ProductState(states::Array{Array{Float64, 1}, 1}) where T = hcat(states...)
-ProductState(N::Int, state::AbstractVector{Float64}) where T = ProductState([state for i in 1:N])
+ProductState(states::Array{Array{Float64, 1}, 1}) = hcat(states...)
+ProductState(N::Int, state::AbstractVector{Float64}) = ProductState([state for i in 1:N])
 
 
 ###############################################################################
@@ -23,7 +23,7 @@ function magnetization(s::AbstractMatrix, x::Symbol=:x)
     1/N * sum(s[match[x], :])
 end
 
-magnetization(sol::OrdinaryDiffEq.ODECompositeSolution, t) = magnetization(sol(t)')
+magnetization(sol::DiffEqBase.DESolution, t) = magnetization(sol(t)')
 magnetization(sim::EnsembleSolution, t) = magnetization(timepoint_mean(sim, t)')
 ###############################################################################
 #### dtwa states ############################################################
