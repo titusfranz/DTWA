@@ -91,12 +91,12 @@ function DTWAProblem_noreduction(system::SpinSystem, Ψ, saveat; kwargs...)
     )
 end
 
-function solve_dtwa(ensemble_prob, trajectories; kwargs...)
+function solve_dtwa(ensemble_prob, trajectories, alg=Tsit(); kwargs...)
     tspan = ensemble_prob.prob.tspan
     nsteps = size(ensemble_prob.u_init, 1)
     sol = DifferentialEquations.solve(
         ensemble_prob,
-        Tsit5(),
+        alg,
         # AutoTsit5(Rosenbrock23()),
         # EnsembleSerial(),
         # EnsembleThreads(),
